@@ -2,16 +2,16 @@ import { notify } from './notification.mjs';
 
 const safeJsonParse = (str) => {
     try {
-        return JSON.parse(str)
+        return JSON.parse(str);
     } catch (p) {
         console.log(`Error: ${p}, src= ${str}`);
-        return null
+        return null;
     }
-}
+};
 
 export const treeSign = async () => {
-    const errorTxt = []
-    const successTxt = []
+    const errorTxt = [];
+    const successTxt = [];
 
     {
         const output = await $`curl -s --request POST \
@@ -27,14 +27,14 @@ export const treeSign = async () => {
         --data access_token=703687483468495-1185e4de01f00d46e7 \
         --data last_days=3 \
         --data open_id=EEB61BDA77836708F0B9298D1F42D7E3 \
-        --data 'sig=gs6hzq+RRm1NFFa0aKywvvr8Nj0='`
-        const res = safeJsonParse(output)
+        --data 'sig=gs6hzq+RRm1NFFa0aKywvvr8Nj0='`;
+        const res = safeJsonParse(output);
         if (!res) {
-            errorTxt.push(`签到失败: ${output}`)
+            errorTxt.push(`签到失败: ${output}`);
         } else if (res.error_msg) {
-            errorTxt.push(`签到失败: ${res.error_msg}`)
+            errorTxt.push(`签到失败: ${res.error_msg}`);
         } else {
-            successTxt.push(`签到成功`)
+            successTxt.push("签到成功");
         }
     }
 
@@ -50,14 +50,14 @@ export const treeSign = async () => {
         --header 'welove-ua: [Device:iPhone13,1][OSV:15.1][CV:3.1.6][WWAN:0][zh_CN][platform:appstore][cocos_version:63]' \
         --data op=1 \
         --data access_token=703687483468495-1185e4de01f00d46e7 \
-        --data 'sig=/+Ry21kn+/nsY7ccWaEPkfSwqHk='`
-        const res = safeJsonParse(output)
+        --data 'sig=/+Ry21kn+/nsY7ccWaEPkfSwqHk='`;
+        const res = safeJsonParse(output);
         if (!res) {
-            errorTxt.push(`浇水失败: ${output}`)
+            errorTxt.push(`浇水失败: ${output}`);
         } else if (res.error_msg) {
-            errorTxt.push(`浇水失败: ${res.error_msg}`)
+            errorTxt.push(`浇水失败: ${res.error_msg}`);
         } else {
-            successTxt.push(`浇水成功`)
+            successTxt.push("浇水成功");
         }
     }
 
@@ -73,14 +73,14 @@ export const treeSign = async () => {
         --header 'welove-ua: [Device:iPhone13,1][OSV:15.1][CV:3.1.6][WWAN:0][zh_CN][platform:appstore][cocos_version:63]' \
         --data op=2 \
         --data access_token=703687483468495-1185e4de01f00d46e7 \
-        --data sig=Akw3e64u6DzvVzolyky5EWj2ed4=`
-        const res = safeJsonParse(output)
+        --data sig=Akw3e64u6DzvVzolyky5EWj2ed4=`;
+        const res = safeJsonParse(output);
         if (!res) {
-            errorTxt.push(`晒太阳失败: ${output}`)
+            errorTxt.push(`晒太阳失败: ${output}`);
         } else if (res.error_msg) {
-            errorTxt.push(`晒太阳失败: ${res.error_msg}`)
+            errorTxt.push(`晒太阳失败: ${res.error_msg}`);
         } else {
-            successTxt.push(`晒太阳成功`)
+            successTxt.push("晒太阳成功");
         }
     }
 
@@ -88,15 +88,14 @@ export const treeSign = async () => {
         await notify({
             title: '爱情树签到失败',
             message: [...errorTxt, ...successTxt].join('\n'),
-        })
+        });
     } else {
         await notify({
             title: '爱情树签到成功',
             message: successTxt.join('\n'),
-        })
+        });
     }
-
-}
+};
 
 export const heartTake = async () => {
     await `curl --request POST \
@@ -115,7 +114,7 @@ export const heartTake = async () => {
     --data by_ad=0 \
     --data scene=fairyland \
     --data access_token=703687483468495-1185e4de01f00d46e7 \
-    --data 'sig=ggNni+QZ6Mtmiey9zFGdzKKU5Fk='`
+    --data 'sig=ggNni+QZ6Mtmiey9zFGdzKKU5Fk='`;
 
     await `curl --request POST \
     --url https://tree.welove520.com/v1/game/tree/fairyland/hearts/vessel/take \
@@ -133,6 +132,6 @@ export const heartTake = async () => {
     --data by_ad=0 \
     --data scene=tree \
     --data access_token=703687483468495-1185e4de01f00d46e7 \
-    --data 'sig=/UZgkAWvwmO5oxqQeRG+rcGeF5s='`
+    --data 'sig=/UZgkAWvwmO5oxqQeRG+rcGeF5s='`;
     console.log('收获爱心完成');
-}
+};

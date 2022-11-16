@@ -6,10 +6,10 @@ const formatDateTime = (date) => {
     const minute = date.getMinutes();
     const second = date.getSeconds();
     return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
-}
+};
 
 const oldLog = console.log;
 
-console.log = function () {
-    oldLog.call(console, formatDateTime(new Date()), ...arguments);
-}
+console.log = function (...args) {
+    oldLog.call(console, formatDateTime(new Date()), ...args);
+};
