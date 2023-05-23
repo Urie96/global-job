@@ -1,0 +1,20 @@
+{
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    },
+    "ignore": [
+      "output"
+    ]
+  },
+  "formatter": {
+    "indentSize": 4,
+    "indentStyle": "space"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single"
+    }
+  }
+}
