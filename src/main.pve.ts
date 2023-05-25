@@ -5,24 +5,29 @@ import Router from 'koa-router';
 import { backup } from './lib/util.js';
 import { treeSign, heartTake } from './lib/loveSpace.js';
 import { createHttpChecker, checkSSL } from './lib/checkNetwork.js';
-import { weatherNotify } from './lib/weatherNotify.js';
+import {
+    fetchWeatherInfo,
+    rainNotify,
+    coldNotify,
+} from './lib/weatherNotify.js';
 import { notifyMe } from './lib/notification.js';
 
 main();
 
 async function main() {
-    scheduleJob('0 10 10 * * *', treeSign);
+    scheduleJob('10 10 * * *', treeSign);
 
-    scheduleJob('0 0 */3 * * *', heartTake);
+    scheduleJob('0 */3 * * *', heartTake);
 
     scheduleJob('0 3 * * *', async () => {
         await backup(
-            '/home/urie/app/nextcloud/files',
+            // '/home/urie/app/nextcloud/files',
             // '/home/urie/app/photoprism/Pictures',
         );
     });
 
     {
+        // http服务宕机提醒
         const httpCheckList = [
             createHttpChecker({
                 uniqName: '美好的回忆',
@@ -50,14 +55,14 @@ async function main() {
                 keyword: '我的笔记',
             }),
         ];
-        scheduleJob('0 * * * * *', async () => {
+        scheduleJob('* * * * *', async () => {
             for (const check of httpCheckList) {
                 await check();
             }
         });
     }
 
-    scheduleJob('0 0 10 * * *', () =>
+    scheduleJob('0 10 * * *', () =>
         checkSSL({
             host: 'lubui.com',
             obtain: async () => {
@@ -68,9 +73,21 @@ async function main() {
         }),
     );
 
-    scheduleJob('0 0 9 * * *', () =>
-        weatherNotify({ location: '116.41,39.92', notify: notifyMe }),
-    );
+    {
+        // 天气提醒
+        const BEIJING = '116.41,39.92';
+
+        scheduleJob('57 * * * *', async () => {
+            await fetchWeatherInfo(BEIJING);
+        });
+
+        scheduleJob('0 8-21 * * *', () => {
+            rainNotify({ location: BEIJING, notify: notifyMe });
+        });
+        scheduleJob('0 9 * * *', () => {
+            coldNotify({ location: BEIJING, notify: notifyMe });
+        });
+    }
 
     const router = new Router();
     router
@@ -84,7 +101,9 @@ async function main() {
         });
 
     const app = new Koa();
-    app.use(router.routes()).use(router.allowedMethods()).listen(8888);
+    app.use(router.routes())
+        .use(router.allowedMethods())
+        .listen(process.env.PORT);
 
-    console.log('全局调度任务已启动');
+    console.log(`全局调度任务已启动，已对${process.env.PORT}端口建立监听`);
 }

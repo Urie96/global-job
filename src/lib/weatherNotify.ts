@@ -1,5 +1,6 @@
 import { notifyMeErr } from './notification.js';
 import { HourWeather, getHourWeather, saveHoursWeather } from './dal.js';
+import { dateOffset } from './util.js';
 
 const getTodayHoursWeather = async (
     location: string,
@@ -37,76 +38,101 @@ const getTodayHoursWeather = async (
     return [];
 };
 
-const getLastDay = (date: Date) => {
-    const d = new Date(date);
-    d.setDate(d.getDate() - 1);
-    return d;
+export const fetchWeatherInfo = async (location: string) => {
+    const hoursWeather = await getTodayHoursWeather(location);
+    await saveHoursWeather(location, hoursWeather);
 };
 
-interface weatherNotifyParam {
+const now = new Date();
+const buildDateText = (date: Date) => {
+    if (date.getDate() === now.getDate()) {
+        return '今天';
+    } else if (date.getTime() < now.getTime()) {
+        return '昨天';
+    } else {
+        return '明天';
+    }
+};
+const buildTimeText = (date: Date) =>
+    `${buildDateText(date)}${date.getHours()}点`;
+
+interface TimeRange {
+    From: Date;
+    To: Date;
+}
+
+async function* weatherBetweenTimeRange(location: string, range: TimeRange) {
+    for (
+        const p = new Date(range.From);
+        p < range.To;
+        p.setHours(p.getHours() + 1)
+    ) {
+        const thisHourWeather = await getHourWeather(location, p);
+        if (thisHourWeather) {
+            yield thisHourWeather;
+        }
+    }
+}
+
+interface WeatherNotifyParam {
     location: string;
-    concernedHourRange?: {
-        From: number;
-        To: number;
-    };
+    concernedTimeRange?: TimeRange;
     notify: (p: {
         message?: string;
         title?: string;
     }) => Promise<unknown>;
 }
 
-export const weatherNotify = async ({
-    location,
-    concernedHourRange = { From: new Date().getHours(), To: 21 },
-    notify,
-}: weatherNotifyParam) => {
-    const todayWeather = await getTodayHoursWeather(location);
-    saveHoursWeather(location, todayWeather);
-    const isHourInRange =
-        concernedHourRange.From <= concernedHourRange.To
-            ? (hour: number) =>
-                  hour >= concernedHourRange.From &&
-                  hour <= concernedHourRange.To
-            : (hour: number) =>
-                  hour >= concernedHourRange.From ||
-                  hour <= concernedHourRange.To;
-    const concernedWeather = todayWeather.filter((v) =>
-        isHourInRange(v.fxTime.getHours()),
-    );
-    const now = new Date();
-    const buildDateText = (date: Date) => {
-        if (date.getDate() === now.getDate()) {
-            return '今天';
-        } else if (date.getTime() < now.getTime()) {
-            return '昨天';
-        } else {
-            return '明天';
-        }
-    };
-    const buildTimeText = (date: Date) =>
-        `${buildDateText(date)}${date.getHours()}点`;
+const defaultConcernedTimeRange = () => ({
+    From: new Date(),
+    To: dateOffset({ setHour: 22 }),
+});
 
-    for (const hour of concernedWeather) {
-        if (hour.pop > 20) {
+export const coldNotify = async ({
+    location,
+    concernedTimeRange = defaultConcernedTimeRange(),
+    notify,
+}: WeatherNotifyParam) => {
+    for await (const thisHourWeather of weatherBetweenTimeRange(
+        location,
+        concernedTimeRange,
+    )) {
+        const lastDayWeather = await getHourWeather(
+            location,
+            dateOffset({ baseDate: thisHourWeather.fxTime, dayOffset: -1 }),
+        );
+        if (
+            lastDayWeather &&
+            thisHourWeather.temperature <= lastDayWeather.temperature - 5
+        ) {
             notify({
-                title: '下雨预报',
-                message: `${buildTimeText(hour.fxTime)}有${
-                    hour.pop
-                }%的概率会下雨，出门记得带伞哦～`,
+                title: '降温预报',
+                message: `${buildTimeText(thisHourWeather.fxTime)}有${
+                    thisHourWeather.pop
+                }比${buildDateText(lastDayWeather.fxTime)}冷${
+                    lastDayWeather.temperature - thisHourWeather.temperature
+                }度，记得添衣保暖哦～`,
             });
             break;
         }
     }
-    for (const hour of concernedWeather) {
-        const lastDay = await getHourWeather(location, getLastDay(hour.fxTime));
-        if (lastDay && hour.temperature <= lastDay.temperature - 5) {
+};
+
+export const rainNotify = async ({
+    location,
+    concernedTimeRange = defaultConcernedTimeRange(),
+    notify,
+}: WeatherNotifyParam) => {
+    for await (const thisHourWeather of weatherBetweenTimeRange(
+        location,
+        concernedTimeRange,
+    )) {
+        if (thisHourWeather.text.includes('雨')) {
             notify({
-                title: '降温预报',
-                message: `${buildTimeText(hour.fxTime)}有${
-                    hour.pop
-                }比${buildDateText(lastDay.fxTime)}冷${
-                    lastDay.temperature - hour.temperature
-                }度，记得添衣保暖哦～`,
+                title: '下雨预报',
+                message: `${buildTimeText(thisHourWeather.fxTime)}有${
+                    thisHourWeather.pop
+                }%的概率会有${thisHourWeather.text}，出门记得带伞哦～`,
             });
             break;
         }

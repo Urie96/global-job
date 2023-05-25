@@ -3,4 +3,4 @@ reload:
 	pm2 start ecosystem.config.cjs
 
 log:
-	pm2 logs MyCronJob
+	pm2 logs MyCronJob --lines 100

@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "ts-node-esm src/main.pve.ts",
+    "test": "export `xargs < .env` PORT=8887 && ts-node-esm src/main.pve.ts",
     "build": "tsc"
   },
   "keywords": [],

@@ -17,19 +17,26 @@ export interface HourWeather {
 const genHoursWeatherKey = (location: string, date: Date) =>
     `weather_${location}_${date.getDate()}_${date.getHours()}`;
 
-export const saveHoursWeather = (location: string, data: HourWeather[]) => {
-    data.reduce(
-        (cmd, v) =>
-            cmd.set(genHoursWeatherKey(location, v.fxTime), JSON.stringify(v), {
-                EX: 3 * 24 * 3600,
-            }),
-        redisClient.multi(),
-    ).exec();
-};
+export const saveHoursWeather = (location: string, data: HourWeather[]) =>
+    data
+        .reduce(
+            (cmd, v) =>
+                cmd.set(
+                    genHoursWeatherKey(location, v.fxTime),
+                    JSON.stringify(v),
+                    {
+                        EX: 3 * 24 * 3600,
+                    },
+                ),
+            redisClient.multi(),
+        )
+        .exec();
 
 export const getHourWeather = async (location: string, date: Date) => {
-    const res = await redisClient.get(genHoursWeatherKey(location, date));
-    if (res) {
-        return JSON.parse(res) as HourWeather;
+    const val = await redisClient.get(genHoursWeatherKey(location, date));
+    if (val) {
+        const res = JSON.parse(val) as HourWeather;
+        res.fxTime = new Date(res.fxTime); // string转Date
+        return res;
     }
 };
