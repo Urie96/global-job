@@ -11,6 +11,7 @@ import {
     coldNotify,
 } from './lib/weatherNotify.js';
 import { notifyMe } from './lib/notification.js';
+import { notifySpecialDays } from './lib/notifySpecialDays.js';
 
 main();
 
@@ -87,6 +88,13 @@ async function main() {
         scheduleJob('0 9 * * *', () => {
             coldNotify({ location: BEIJING, notify: notifyMe });
         });
+    }
+
+    {
+        // 生日提醒
+        // scheduleJob('0 8 * * *', () => {
+        notifySpecialDays();
+        // });
     }
 
     const router = new Router();

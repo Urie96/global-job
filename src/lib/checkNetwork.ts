@@ -52,13 +52,13 @@ export const createHttpChecker = (ctx: HttpCheckerParam) => {
 
     type ServiceState =
         | {
-              value: 'available';
-              context: ServiceContext;
-          }
+            value: 'available';
+            context: ServiceContext;
+        }
         | {
-              value: 'unavailable';
-              context: ServiceContext;
-          };
+            value: 'unavailable';
+            context: ServiceContext;
+        };
 
     const checker = interpret(
         createMachine<ServiceContext, ServiceEvent, ServiceState>({
@@ -76,24 +76,23 @@ export const createHttpChecker = (ctx: HttpCheckerParam) => {
                         BREAK: {
                             target: 'unavailable',
                             actions: (_, event) => {
-                                console.log(`broken at${new Date()}`);
+                                console.log(`${ctx.uniqName} broken at ${new Date()}`);
                                 throttleNotify({
                                     title: '服务异常',
-                                    message: `「${ctx.uniqName}」服务异常: ${
-                                        event.type === 'BREAK' && event.reason
-                                    } `,
+                                    message: `「${ctx.uniqName}」服务异常: ${event.type === 'BREAK' && event.reason
+                                        } `,
                                 });
                             },
                         },
                     },
                 },
                 unavailable: {
-                    entry: () => {},
+                    entry: () => { },
                     on: {
                         FIX: {
                             target: 'available',
                             actions: (ctx) => {
-                                console.log(`fixed at ${new Date()}`);
+                                console.log(`${ctx.uniqName} fixed at ${new Date()}`);
                                 notifyMe({
                                     title: '服务恢复',
                                     message: `「${ctx.uniqName}」服务恢复`,
@@ -138,16 +137,14 @@ export const checkSSL = async ({
         if (!res.valid) {
             await notifyMe({
                 title: 'SSL证书无效',
-                message: `${host} SSL证书无效${
-                    obtain ? '，正在尝试自动更新证书' : ''
-                }`,
+                message: `${host} SSL证书无效${obtain ? '，正在尝试自动更新证书' : ''
+                    }`,
             });
         } else {
             await notifyMe({
                 title: 'SSL证书即将过期',
-                message: `${host} 证书将在 ${res.daysRemaining} 天后过期${
-                    obtain ? '，正在尝试自动更新证书' : ''
-                }`,
+                message: `${host} 证书将在 ${res.daysRemaining} 天后过期${obtain ? '，正在尝试自动更新证书' : ''
+                    }`,
             });
         }
         if (obtain) {

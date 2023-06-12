@@ -18,6 +18,14 @@ export const notifyMeWithThrottle = (waitSeconds = 3600) =>
 
 const notifyErrTimer = notifyMeWithThrottle(3600);
 
-export const notifyMeErr = (err: string) => {
+// rome-ignore lint/suspicious/noExplicitAny: <explanation>
+export const notifyMeErr = (err: any) => {
+    let msg = '';
+    if (typeof err === 'string') {
+        msg = err;
+    }
+    if (err.message && typeof err.message === 'string') {
+        msg = err.message;
+    }
     notifyErrTimer({ message: err, title: 'MyCronJob报错' });
 };
