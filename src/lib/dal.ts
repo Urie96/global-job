@@ -1,7 +1,9 @@
 import { createClient } from 'redis';
 import { notifyMeErr } from './notification.js';
 
-export const redisClient = createClient();
+export const redisClient = createClient({
+    password: process.env.REDIS_PASSWD,
+});
 
 redisClient.on('error', (err) => console.log('Redis Client Error', err));
 
@@ -50,3 +52,9 @@ export const getHourWeather = async (location: string, date: Date) => {
         return res;
     }
 };
+
+export const saveContactIdByName = (name: string, id: string) =>
+    redisClient.set(`wechat_contact_${name}`, id);
+
+export const getContactIdByName = (name: string) =>
+    redisClient.get(`wechat_contact_${name}`);

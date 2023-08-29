@@ -1,3 +1,3 @@
 GET https://devapi.qweather.com/v7/weather/24h
     ?key={{$dotenv WEATHER_API_KEY}}
-    &location=116.41,39.92
+    &location=116.29,39.96

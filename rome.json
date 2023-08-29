@@ -2,14 +2,15 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "style": {
+        "noParameterAssign": "warn"
+      }
     },
-    "ignore": [
-      "output"
-    ]
+    "ignore": ["output"]
   },
   "formatter": {
-    "indentSize": 4,
+    "indentSize": 2,
     "indentStyle": "space"
   },
   "javascript": {
